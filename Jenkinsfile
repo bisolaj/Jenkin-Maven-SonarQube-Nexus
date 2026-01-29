@@ -18,7 +18,7 @@ pipeline {
     }
     stage('Integration Test'){
         steps {
-            sh 'mvn verify -DskipUnitTests'
+            sh 'mvn verify -DskipUnitTests'  //-DskipUnitTests allows to skip unit testing
         }
     }
     stage ('Checkstyle Code Analysis'){
