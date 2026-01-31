@@ -1,5 +1,9 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good', 
+    'FAILURE': 'danger',
+    'UNSTABLE': 'danger'
+]
 pipeline {
-  agent any // This specifies that the pipeline can run on any available agent
   stages {
     stage('Validate Project') {
         steps {
@@ -18,7 +22,7 @@ pipeline {
     }
     stage('Integration Test'){
         steps {
-            sh 'mvn verify -DskipUnitTests'  //-DskipUnitTests allows to skip unit testing
+            sh 'mvn verify -DskipUnitTests'
         }
     }
     stage ('Checkstyle Code Analysis'){
@@ -29,9 +33,9 @@ pipeline {
     stage('SonarQube Inspection') {
         steps {
             sh  """mvn sonar:sonar \
-                    -Dsonar.projectKey=Java-WebApp-Project \
-                    -Dsonar.host.url=http://98.81.117.236:9000 \
-                    -Dsonar.login=d53eec9529a9e7206ce500d77166b36bcb9ace86"""
+                   -Dsonar.projectKey=Java-WebApp-Project \
+                   -Dsonar.host.url=http://172.31.22.192:9000 \
+                   -Dsonar.login=d3b013b176b29e1ae8c6e55ef74b3146191acf05"""
         }
     } 
     stage("Upload Artifact To Nexus"){
@@ -43,6 +47,14 @@ pipeline {
               echo 'Successfully Uploaded Artifact to Nexus Artifactory'
         }
       }
+    }
+  }
+  post {
+    always {
+        echo 'Slack Notifications.'
+        slackSend channel: '#devops', //update and provide your channel name
+        color: COLOR_MAP[currentBuild.currentResult],
+        message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
     }
   }
 }
